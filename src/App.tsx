@@ -1,55 +1,49 @@
-import {useEffect, useState} from "react";
-import {FilterTypes, type ITodo} from "./types/types.tsx";
+import {useCallback, useState} from "react";
+import {FilterTypes, type ITodo} from "./types/types.ts";
 import TodoList from "./components/UI/TodoList.tsx";
 import InteractiveSection from "./components/InteractiveSection.tsx";
+import {filterTodos} from "./components/utils/filterTodos.ts";
 
 function App() {
-
     const [todos, setTodos] = useState<ITodo[]>(() => {
         const storedTodos = localStorage.getItem('todosList');
         return storedTodos ? JSON.parse(storedTodos) : [];
     });
 
-    const [visibleTodos, setVisibleTodos] = useState<ITodo[]>([]);
+    const [activeFilter, setActiveFilter] = useState<FilterTypes>(FilterTypes.All);
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const visibleTodos = filterTodos(todos, activeFilter, searchQuery);
+    const remainingTodos = todos.filter((todo: ITodo) => !todo.isCompleted).length;
 
-    useEffect(() => {
-        localStorage.setItem('todosList', JSON.stringify(todos));
-        console.log('Todos updated:', todos);
-        setVisibleTodos(todos);
-    }, [todos]);
+    const setNewTodos = (newTodos: ITodo[]) => {
+        localStorage.setItem('todosList', JSON.stringify(newTodos));
+        setTodos(newTodos);
+    }
 
     const removeTodo = (id: number) => {
-        setTodos(todos.filter((todo: ITodo) => todo.id !== id));
+        const removedTodos = todos.filter((todo: ITodo) => todo.id !== id)
+        setNewTodos(removedTodos);
     };
 
     const changeIsCompletedState = (id: number, isCompleted: boolean) => {
-        setTodos(todos =>
-            todos.map(todo =>
-                todo.id === id ? { ...todo, isCompleted } : todo
-            )
+        const updatedTodos = todos.map(todo =>
+            todo.id === id ? {...todo, isCompleted} : todo
         );
+        setNewTodos(updatedTodos);
     };
 
-    function filterTodos(filterType: FilterTypes) {
-        if (filterType === FilterTypes.All) {
-            setVisibleTodos(todos);
-        } else if (filterType === FilterTypes.Active) {
-            setVisibleTodos(todos.filter((todo: ITodo) => !todo.isCompleted));
-        } else if (filterType === FilterTypes.Completed) {
-            setVisibleTodos(todos.filter((todo: ITodo) => todo.isCompleted));
-        }
-    }
-
     const editTodo = (id: number, newContent: string) => {
-        setTodos(todos =>
-            todos.map(todo =>
-                todo.id === id ? { ...todo, content: newContent } : todo
-            )
-        );
-        setVisibleTodos(todos);
+        const editedTodos =
+                todos.map(todo =>
+                    todo.id === id ? {...todo, content: newContent} : todo
+                );
+        setNewTodos(editedTodos);
     }
 
-    const remainingTodos = todos.filter((todo: ITodo) => !todo.isCompleted).length;
+    const createTodo = useCallback((newTodo: ITodo) => {
+        const newTodos = [...todos, newTodo];
+        setNewTodos(newTodos);
+    }, [todos]);
 
     return (
         <div className="bg-backgroundPrimary min-h-screen w-full flex flex-col items-center font-mono">
@@ -57,13 +51,16 @@ function App() {
                 ToDo App
             </h1>
 
-            <InteractiveSection todos={todos} className={'w-1/3 items-center'} setTodos={setTodos} filterTodos={filterTodos} setVisibleTodos={setVisibleTodos}/>
+            <InteractiveSection className={'w-1/3 items-center'} activeFilter={activeFilter}
+                                onActiveFilterChange={setActiveFilter} searchQuery={searchQuery}
+                                onSearchQueryChange={setSearchQuery} onTodoCreate={createTodo}/>
 
             <div className="w-1/3 pt-4">
                 <div className="text-backgroundSecondary/60">
                     Remaining todos: {remainingTodos}
                 </div>
-                <TodoList onEdit={editTodo} todos={visibleTodos} onRemove={removeTodo} onIsCompletedChange={changeIsCompletedState} />
+                <TodoList onEdit={editTodo} todos={visibleTodos} onRemove={removeTodo}
+                          onIsCompletedChange={changeIsCompletedState}/>
             </div>
         </div>
     );
