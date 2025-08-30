@@ -1,5 +1,5 @@
 import {type FunctionComponent, useState} from 'react';
-import type {ITodo} from "../../types/types.tsx";
+import type {ITodo} from "../../types/types.ts";
 import Input from "./Input.tsx";
 import Button from "./Button.tsx";
 import {PencilSquareIcon, TrashIcon} from "@heroicons/react/24/solid";

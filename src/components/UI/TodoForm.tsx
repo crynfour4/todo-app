@@ -1,7 +1,7 @@
 import React, {type FunctionComponent, useState} from 'react';
 import Input from "./Input.tsx";
 import Button from "./Button.tsx";
-import type {ITodo} from "../../types/types.tsx";
+import type {ITodo} from "../../types/types.ts";
 
 interface TodoFormProps {
     onCreate: (todo: ITodo) => void

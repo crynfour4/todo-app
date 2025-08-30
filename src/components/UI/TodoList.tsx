@@ -1,4 +1,4 @@
-import type {ITodo} from "../../types/types.tsx";
+import type {ITodo} from "../../types/types.ts";
 import type {FunctionComponent} from "react";
 import TodoCard from "./TodoCard.tsx";
 
